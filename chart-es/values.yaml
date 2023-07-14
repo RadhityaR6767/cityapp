@@ -1,3 +1,5 @@
 clusterName: my-elastic-cluster
 replicas: 1
-protocol: http
+secret:
+  enabled: true
+  password: "12345"

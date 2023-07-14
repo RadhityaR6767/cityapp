@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: rchronic/cityapp
-  tag: "v1.0.0"
+  tag: "v1.4.0"
   pullPolicy: IfNotPresent
 
 containerPort: 5000

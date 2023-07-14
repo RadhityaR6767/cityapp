@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, jsonify
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, RequestsHttpConnection
 
 app = Flask(__name__)
 
@@ -10,7 +10,9 @@ load_dotenv()
 
 # Create Elasticsearch client
 es = Elasticsearch(
-    hosts=[f"{os.getenv('ELASTICSEARCH_SCHEMA')}://{os.getenv('ELASTICSEARCH_HOST')}:{os.getenv('ELASTICSEARCH_PORT')}"]
+    hosts=[f"{os.getenv('ELASTICSEARCH_SCHEMA')}://{os.getenv('ELASTICSEARCH_USERNAME')}:{os.getenv('ELASTICSEARCH_PASS')}@{os.getenv('ELASTICSEARCH_HOST')}:{os.getenv('ELASTICSEARCH_PORT')}"],
+    verify_certs=False,
+    connection_class=RequestsHttpConnection
 )
 
 # Create Elasticsearch index
@@ -31,29 +33,25 @@ def health():
 # Insert a city and its population
 @app.route('/city', methods=['POST'])
 def insert_city():
-    data = request.json
+    data = request.get_json()
     city = data.get('city')
     population = data.get('population')
-
-    if not city or not population:
-        return jsonify({'error': 'City and population are required'}), 400
 
     doc = {
         'city': city,
         'population': population
     }
 
-    res = es.index(index=cities, body=doc)
+    res = es.index(index='cities', doc_type='_doc', body=doc)
 
-    return jsonify(res), 201
+    return jsonify(res)
 
 # Update a city and its population
-@app.route('/city/<city>', methods=['PUT'])
-def update_city(city):
-    population = request.json.get('population')
-
-    if not population:
-        return jsonify({'error': 'Population is required'}), 400
+@app.route('/city', methods=['PUT'])
+def update_city():
+    data = request.get_json()
+    city = data.get('city')
+    population = data.get('population')
 
     doc = {
         'doc': {
@@ -61,23 +59,29 @@ def update_city(city):
         }
     }
 
-    res = es.update(index=cities, id=city, body=doc)
+    res = es.update(index='cities', doc_type='_doc', id=city, body=doc)
 
-    return jsonify(res), 200
+    return jsonify(res)
 
 # Delete a city and its population
-@app.route('/city/<city>', methods=['DELETE'])
-def delete_city(city):
-    res = es.delete(index=cities, id=city)
+@app.route('/city', methods=['DELETE'])
+def delete_city():
+    data = request.get_json()
+    city = data.get('city')
 
-    return jsonify(res), 200
+    res = es.delete(index='cities', id=city)
+
+    return jsonify(res)
 
 # Retrieve the population of a city
-@app.route('/city/<city>', methods=['GET'])
-def get_population(city):
-    res = es.get(index=cities, id=city)
+@app.route('/city', methods=['GET'])
+def get_population():
+    data = request.get_json()
+    city = data.get('city')
+    
+    res = es.get(index='cities', id=city)
 
-    return jsonify(res), 200
+    return jsonify(res)
 
 # Main execution
 if __name__ == '__main__':
