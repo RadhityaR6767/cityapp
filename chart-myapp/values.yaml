@@ -1,0 +1,15 @@
+replicaCount: 1
+
+image:
+  repository: rchronic/cityapp
+  tag: "v1.0.0"
+  pullPolicy: IfNotPresent
+
+containerPort: 5000
+
+service:
+  type: NodePort
+  protocol: TCP
+  port: 5000
+  targetPort: 5000
+  nodePort: 30050

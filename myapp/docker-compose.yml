@@ -1,0 +1,9 @@
+# For testing locally
+# docker compose up -d
+# docker compose down --rmi all
+version: '3'
+services:
+  backend:
+    image: cityapp:v1.0.0
+    ports:
+      - 5000:5000
